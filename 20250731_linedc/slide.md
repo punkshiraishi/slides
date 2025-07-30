@@ -80,27 +80,57 @@ for i in {1..10}; do claude -p "/fill-todo"; done
 ---
 
 ## 課題: 余計な実装が無限増殖する
-- 要求していない機能を勝手に追加する
-- CLAUDE.md に実装方針を書いたが全然無視される
+- 要求していない機能や設計を勝手に追加する
+- CLAUDE.md に実装方針を書いても全然無視される
 
 ### 解決方法
 - linter ルールで CC がやりがちな実装をエラーにする
 - エラーメッセージで修正方法を明記するのが効果的
 
+---
+#### ディレクトリごとに eslint ルールを設定する
+
+```
+test/
+├── controller/
+│   ├── eslintrc.js
+│   ├── getUser.test.ts
+│   ├── updateUser.test.ts
+│   └── ...
+├── factory/
+│   ├── eslintrc.js
+│   ├── userFactory.ts
+│   └── ...
+└── eslintrc.js
+```
 
 ---
-### 例: prisma.create の禁止
-- `userFactory` を使って欲しいのに無限に `prisma.user.create` される
 
+#### 例: controller/eslintrc.js
+
+```js
+module.exports = {
+  extends: ["../../.eslintrc.js", "../.eslintrc.js"],
+  rules: {
+    "no-restricted-syntax": [
+      "error",
+      {
+        selector: [
+          "CallExpression[callee.object.object.name='prisma'][callee.property.name='create']"
+        ].join(''),
+        message: "テストデータの作成は、Factory で実装してください",
+      },
+      {
+        selector: [
+          "TSNonNullExpression MemberExpression[property.name='authId']",
+          "TSNonNullExpression OptionalMemberExpression[property.name='authId']",
+        ].join(', '),
+        message: '.authId! の代わりに .authId as string を使用してください',
+      },
+    ],
+  },
+};
 ```
-```
-
-- prisma.create の禁止
-- Factory 系クラスに追加のメソッド定義を禁止
-- 記法の統一 (user.id! → user.id as string)
-- 
-
-CLAUDE.md に実装方針を書く → 効果は限定的
 
 ---
 
