@@ -68,7 +68,7 @@ LINEDC Claude Code 実践 Meetup
 
 ## 課題: 毎回の承認が面倒
 - CC に張り付いてコマンドを承認するのが面倒
-- ポチポチしているうちに `rm -rf` を許可してしまうリスク
+- ポチポチしているうちに `rm -rf ~/` を許可してしまうリスク
 
 ### 解決方法
 公式の DevContainer を導入して承認をスキップ
@@ -110,7 +110,7 @@ for i in {1..10}; do claude -p "/fill-todo"; done
 - エラーメッセージで修正方法を明記するのが効果的
 
 ---
-#### ディレクトリごとに eslint ルールを設定する
+#### 例: ディレクトリごとに eslint ルールを設定する
 
 ```
 test/
@@ -156,6 +156,34 @@ module.exports = {
 
 ---
 
+#### 例: test/controllers/eslintrc.js の適用
+ 
+```js
+// Error: テストデータの作成は、Factory で実装してください
+prisma.user.create({
+  data: {
+    name: 'test',
+    // ... 20 個くらいのフィールド
+  },
+});
+
+// OK
+const userFactory = new UserFactory(prisma)
+userFactory.create()
+```
+
+---
+#### 例: test/controllers/eslintrc.js の適用
+
+```js
+// Error: .authId! の代わりに .authId as string を使用してください
+user.authId!
+
+// OK
+user.authId as string
+```
+---
+
 ## 課題: コード生成と修正の効率が悪い
 - 初手で型エラーや linter エラーが多い状態でコードが生成される
 - エラーを含めた修正に時間がかかる
@@ -168,7 +196,7 @@ hooks で即時フィードバック
 
 ---
 
-### 例: .claude/settings.json
+#### 例: .claude/settings.json
 
 ```json
 {
@@ -212,6 +240,13 @@ hooks で即時フィードバック
   }
 }
 ```
+
+---
+
+#### 例: .claude/settings.json でやっていること
+- コマンド実行前に `rm -rf ~/` が含まれていないかチェック
+- コマンド実行後にフォーマット
+- コマンド実行後に型チェック
 
 ---
 
